@@ -1,0 +1,19 @@
+{
+    "name": "frontend-server",
+    "version": "0.0.1",
+    "private": true,
+    "scripts": {
+        "postinstall": "yarn run build",
+        "start": "node server.js",
+        "build": "cd client && yarn install && yarn run build && cd -",
+        "test": "cd client && yarn run lint && cd -"
+    },
+    "engines": {
+        "node": ">=8.11.3",
+        "npm": ">=6.1.0"
+    },
+    "dependencies": {
+        "express": "4.16.3",
+        "serve-static": "1.13.2"
+    }
+}

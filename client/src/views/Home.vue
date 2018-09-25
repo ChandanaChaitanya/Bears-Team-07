@@ -2,49 +2,62 @@
   <div class="home text-center">
     <div class="container main-black-color">
       <!-- New puffs -->
-          <form>
-            <input type="text" v-model="puffTitle" placeholder="Title" required>
-            <input type="text" v-model="puffContent" placeholder="New Puff" required>
-            <input
-              style="display:none"
-              type="file"
-              @change="onFileSelected"
-              ref="fileInput">
-            <button class="btn btn-custom" 
+      <form>
+        <div class="form-row">
+          <div class="col-md-4 col-sm-6 mb-3">
+            <input type="text" class="form-control" v-model="puffTitle" placeholder="Title" required>
+          </div>
+          <div class="col-md-4 col-sm-6 mb-3">
+            <input type="text" class="form-control" v-model="puffContent" placeholder="New Puff" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <button class="form-control btn btn-custom" 
               @click.prevent="$refs.fileInput.click()">
               Select File
             </button>
-            <p>{{ fileName }}</p>
-            <i class="fa fa-heart fa-lg" role="button"
-              @click.prevent="updateFavs" aria-hidden="true"
-              v-if="editMode" :class="{unfav: !favs}">
-            </i>
-            <div v-if="puffImage">
-              <img :src="frameUrl(puffImage)" width="100px"/>
-            </div>
-            <button class="btn btn-custom"
-              v-if="!editMode"
-              @click.prevent="createNewPuff">
-              Puff It!
-            </button>
-            <button class="btn btn-custom"
-              v-if="editMode"
-              @click.prevent="editPuff">
-              Update Puff
-            </button>
-            <button class="btn btn-custom"
-              v-if="editMode" @click.prevent="cancelEdit">
-              Cancel
-            </button>
-            <div v-if="show">
-              <p class="error">
-              <!-- <i class="fa fa-exclamation-circle" aria-hidden="true"></i> -->
-              {{ errorMessage }}</p>
-            </div>
-            <div v-if="successMessage" class="alert alert-success">
-              {{ successMessage }}
-            </div>
-          </form>
+          </div>
+        </div>
+        <input
+          style="display:none"
+          type="file"
+          @change="onFileSelected"
+          ref="fileInput">
+        <button class="btn btn-custom"
+          v-if="editMode && puffImage"
+          @click.prevent="removeAttachment">
+          Delete Attachment
+        </button>
+        <p>{{ fileName }}</p>
+        <i class="fa fa-heart fa-lg" role="button"
+          @click.prevent="updateFavs" aria-hidden="true"
+          v-if="editMode" :class="{unfav: !favs}">
+        </i>
+        <div v-if="puffImage">
+          <img :src="frameUrl(puffImage)" width="100px"/>
+        </div>
+        <button class="btn btn-custom"
+          v-if="!editMode"
+          @click.prevent="createNewPuff">
+          Puff It!
+        </button>
+        <button class="btn btn-custom"
+          v-if="editMode"
+          @click.prevent="editPuff">
+          Update Puff
+        </button>
+        <button class="btn btn-custom"
+          v-if="editMode" @click.prevent="cancelEdit">
+          Cancel
+        </button>
+        <div v-if="show">
+          <p class="error">
+          <!-- <i class="fa fa-exclamation-circle" aria-hidden="true"></i> -->
+          {{ errorMessage }}</p>
+        </div>
+        <div v-if="successMessage" class="alert alert-success">
+          {{ successMessage }}
+        </div>
+      </form>
       <!-- Feed -->
       <feed class="feed-view" 
         :puffs="userPuffs" 
@@ -74,6 +87,8 @@ export default {
       puffAuthor: "",
       userPuffs: [],
       puffsPage: 0,
+      // required by backend to delete the attachment in edit mode
+      remove: 0,
       errorMessage: "",
       show: false,
       selectedFile: null,
@@ -94,7 +109,14 @@ export default {
     frameUrl(imageUrl) {
       if (imageUrl) {
         const url = imageUrl.replace(/\\/g, "/");
-        return process.env.VUE_APP_BACKEND_API_URL + url;
+        return process.env.VUE_APP_BACKEND_API_URL + "/" + url;
+      }
+    },
+    removeAttachment() {
+      if (this.puffImage) {
+        this.puffImage = "";
+        this.selectedFile = null;
+        this.remove = 1;
       }
     },
     updateFavs() {
@@ -201,6 +223,9 @@ export default {
         if (self.favs > 0) {
           updateObj.favs = self.favs;
         }
+        if (self.remove) {
+          updateObj.remove = self.remove;
+        }
         try {
           await PuffService.updatePuff(
             self.puffId,
@@ -261,7 +286,7 @@ export default {
         (this.show = true), this.error(error.response.data.error);
       }
     },
-    loadInformationFromLocalStorage: function() {
+    loadInformationFromLocalStorage() {
       // Get the token from the local storage
       if (localStorage.getItem("DearDiiaryToken")) {
         let ls_token = JSON.parse(localStorage.getItem("DearDiiaryToken"));
@@ -283,6 +308,11 @@ export default {
   position: relative;
   width: 100%;
   min-height: 100vh;
+}
+@media (max-width: 768px) {
+  .home {
+    padding: 130px 10px 10px 10px;
+  }
 }
 .main-black-color {
   color: #000;
@@ -316,9 +346,10 @@ input {
 }
 .feed-view {
   margin-top: 20px;
+  margin-bottom: 40px;
 }
 .fa-heart {
-  padding-bottom: 10px;
+  padding: 0 10px 10px 0;
   color: #ff0000;
 }
 .unfav {
