@@ -1,0 +1,82 @@
+<template>
+  <header>
+    <nav class="navbar navbar-custom navbar-dark fixed-top">
+      <router-link to="/" class="navbar-brand">
+        <img src="../assets/brand/d-logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
+        Dear Diiary
+      </router-link>
+      <div id="navbarLink" v-if="!$store.state.isUserLoggedIn">
+        <ul class="nav navbar-right">
+          <li class="nav-item">
+            <router-link to="/login" class="nav-link">
+              Login
+              <i class="fa fa-sign-in" aria-hidden="true"></i>
+            </router-link>
+          </li>
+        </ul>
+      </div>
+      <div id="navbarLink" v-if="$store.state.isUserLoggedIn">
+        <ul class="nav navbar-right">
+          <li class="nav-item user-custom">
+            Hi {{ capitalizeUsername($store.state.user.username) }}!
+          </li>
+          <li class="nav-item" @click="logout">
+            <div class="nav-link logout">
+              Logout
+              <i class="fa fa-sign-out" aria-hidden="true"></i>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+</template>
+
+<script>
+export default {
+  methods: {
+    capitalizeUsername(username) {
+      return username.charAt(0).toUpperCase() + username.slice(1);
+    },
+    logout() {
+      this.$store.dispatch("setToken", null);
+      this.$store.dispatch("setUser", null);
+      this.$router.push({
+        name: "welcome"
+      });
+    }
+  }
+};
+</script>
+
+<!-- Add "scoped" attribute to limit CSS to this component only -->
+<style scoped>
+img {
+  padding-right: 5px;
+}
+.navbar-custom {
+  font-family: "Macondo Swash Caps", cursive;
+  background-color: #420906;
+  border-bottom: 1px solid #fff;
+  letter-spacing: 0.5px;
+}
+.navbar-brand {
+  font-size: 25px;
+  color: #fff;
+}
+.navbar-brand:hover {
+  color: #ffccbc;
+}
+#navbarLink a {
+  color: #fff;
+}
+#navbarLink a.router-link-exact-active {
+  color: #ffccbc;
+}
+.user-custom {
+  padding-top: 8px;
+}
+.logout {
+  cursor: pointer;
+}
+</style>
